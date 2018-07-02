@@ -1,0 +1,204 @@
+---
+swagger: "2.0"
+info:
+  description: "A simple REST-API to get, add or modify Data from Get-Servername Database"
+  version: "1.1.0"
+  title: "Get-Servername API"
+  
+  
+  contact:
+    name: SMW-SO - FG-AUTO
+    url: "https://teams.microsoft.com/l/channel/19%3a4a76847e779147f6b0a4e2cde027236a%40thread.skype/FG%2520Automation?groupId=341e3653-21cc-4304-8cd0-2f3efc4b43f9&tenantId=acf01cd9-ddd4-4522-a2c3-ebcadef31fbb"
+    email: "de388651.evonik.onmicrosoft.com@emea.teams.ms"
+host: "servername-api:8080"
+basePath: "/rest"
+schemes:
+- "http"
+consumes:
+- "application/json"
+produces:
+- "application/json"
+paths:
+  /servers:
+    get:
+      summary: "Gets all servers"
+      description: "Returns a list containing all servers."
+      operationId: "servers_get"
+      parameters: []
+      responses:
+        200:
+          description: "A list of Server"
+          schema:
+            $ref: "#/definitions/Servers"
+        500:
+          description: "An unexpected error occured."
+          schema:
+            $ref: "#/definitions/Error"
+        default:
+          description: "A totally unexpected response"
+      x-swagger-router-controller: "swagger_server.controllers.default_controller"
+    post:
+      summary: "Adds a server"
+      description: "Adds a new server to the database, generating it´s name."
+      operationId: "servers_post"
+      parameters:
+      - in: "body"
+        name: "server"
+        description: "The server to create."
+        required: true
+        schema:
+          $ref: "#/definitions/Server"
+      responses:
+        204:
+          description: "Server succesfully created."
+          schema:
+            $ref: "#/definitions/Server"
+        400:
+          description: "Server couldn't have been created."
+        500:
+          description: "An unexpected error occured."
+          schema:
+            $ref: "#/definitions/Error"
+        default:
+          description: "A totally unexpected response"
+      x-swagger-router-controller: "swagger_server.controllers.default_controller"
+  /servers/{srvid}:
+    get:
+      summary: "Gets a server"
+      description: "Returns a single server for its id."
+      operationId: "servers_srvid_get"
+      parameters:
+      - name: "srvid"
+        in: "path"
+        description: "The server's id"
+        required: true
+        type: "integer"
+      responses:
+        200:
+          description: "AServer"
+          schema:
+            $ref: "#/definitions/Server"
+        404:
+          description: "Server does not exist."
+        500:
+          description: "An unexpected error occured."
+          schema:
+            $ref: "#/definitions/Error"
+        default:
+          description: "A totally unexpected response"
+      x-swagger-router-controller: "swagger_server.controllers.default_controller"
+    delete:
+      summary: "Deletes a server"
+      description: "Delete a single server identified via its id"
+      operationId: "servers_srvid_delete"
+      parameters:
+      - name: "srvid"
+        in: "path"
+        description: "The server's id"
+        required: true
+        type: "integer"
+      responses:
+        204:
+          description: "Server successfully deleted."
+        404:
+          description: "Server does not exist."
+        500:
+          description: "An unexpected error occured."
+          schema:
+            $ref: "#/definitions/Error"
+        default:
+          description: "A totally unexpected response"
+      x-swagger-router-controller: "swagger_server.controllers.default_controller"
+definitions:
+  Server:
+    required:
+    - "owner"
+    - "purpose"
+    - "responsible"
+    properties:
+      owner:
+        type: "string"
+        pattern: "[A-Z][0-9]{4,6}"
+        x-regex: "[A-Z][0-9]{4,6}"
+        x-modifiers: []
+      responsible:
+        type: "string"
+        pattern: "[A-Z][0-9]{4,6}"
+        x-regex: "[A-Z][0-9]{4,6}"
+        x-modifiers: []
+      purpose:
+        type: "string"
+      creationDate:
+        type: "string"
+        format: "date-time"
+        readOnly: true
+      ticketRef:
+        type: "string"
+        minLength: 11
+        maxLength: 11
+        pattern: "RFT?[0-9]{8,8}"
+        x-regex: "RFT?[0-9]{8,8}"
+        x-modifiers: []
+      applier:
+        type: "string"
+      servername:
+        type: "string"
+        readOnly: true
+      id:
+        type: "integer"
+        readOnly: true
+  Servers:
+    required:
+    - "items"
+    properties:
+      items:
+        type: "array"
+        uniqueItems: true
+        items:
+          $ref: "#/definitions/Server"
+  ErrorMessage:
+    required:
+    - "longMessage"
+    - "shortMessage"
+    properties:
+      longMessage:
+        type: "string"
+      shortMessage:
+        type: "string"
+  MultilingualErrorMessage:
+    type: "object"
+    properties:
+      defaultLanguage:
+        $ref: "#/definitions/ErrorMessage"
+    additionalProperties:
+      $ref: "#/definitions/ErrorMessage"
+  Error:
+    required:
+    - "code"
+    - "message"
+    properties:
+      code:
+        type: "string"
+        enum:
+        - "DBERR"
+        - "NTERR"
+        - "UNERR"
+      message:
+        $ref: "#/definitions/MultilingualErrorMessage"
+parameters:
+  srvid:
+    name: "srvid"
+    in: "path"
+    description: "The server's id"
+    required: true
+    type: "integer"
+responses:
+  Standard500ErrorResponse:
+    description: "An unexpected error occured."
+    schema:
+      $ref: "#/definitions/Error"
+  ServerDoesNotExistResponse:
+    description: "Server does not exist."
+  TotallyUnexpectedResponse:
+    description: "A totally unexpected response"
+
